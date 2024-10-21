@@ -204,7 +204,7 @@
 	phy-handle = <&ethphy1>;
 	phy-supply = <&reg_fec_phy>;
 	status = "okay";
-};*//**/
+};*/
 
 &eqos {
 	mdio {
