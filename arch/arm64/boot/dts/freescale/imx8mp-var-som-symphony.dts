@@ -13,42 +13,6 @@
 		stdout-path = &uart2;
 	};
 
-	/*gpio-keys {
-		compatible = "gpio-keys";
-		status = "okay";
-
-		back {
-			label = "Back";
-			linux,code = <KEY_BACK>;
-			gpios = <&pca9534 1 GPIO_ACTIVE_LOW>;
-			wakeup-source;
-		};
-
-		home {
-			label = "Home";
-			linux,code = <KEY_HOME>;
-			gpios = <&pca9534 2 GPIO_ACTIVE_LOW>;
-			wakeup-source;
-		};
-
-		menu {
-			label = "Menu";
-			linux,code = <KEY_MENU>;
-			gpios = <&pca9534 3 GPIO_ACTIVE_LOW>;
-			wakeup-source;
-		};
-	};*/
-
-	/*gpio-leds {
-		compatible = "gpio-leds";
-		status = "okay";
-
-		heartbeat {
-			label = "Heartbeat";
-			linux,default-trigger = "heartbeat";
-			gpios = <&pca9534 0 GPIO_ACTIVE_HIGH>;
-		};
-	};*/
 
 	pcie0_refclk: pcie0-refclk {
 		compatible = "fixed-clock";
