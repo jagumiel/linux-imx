@@ -269,7 +269,7 @@
 	sda-gpios = <&gpio5 19 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 
-	/* USB Type-C Controller */
+	/* USB Type-C Controller */ //Esto es la negociacion del modo de USB. ES un chip I2C.
 	typec@3d {
 		compatible = "nxp,ptn5150";
 		pinctrl-names = "default";
@@ -285,6 +285,13 @@
 				remote-endpoint = <&usb3_drd_sw>;
 			};
 		};
+	};
+	
+	usb3_sel_hog {
+		gpio-hog;
+		gpios = <4 0>;
+		output-low;
+		line-name = "usb3_sel";
 	};
 
 	/* GPIO expander */
@@ -640,6 +647,8 @@
 			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA			0x400001c2
 			MX8MP_IOMUXC_HDMI_HPD__HDMIMIX_HDMI_HPD				0x40000010
 			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC				0x40000010
+			MX8MP_IOMUXC_I2C1_SCL__GPIO5_IO14					0x00	//Agrego esto para los reset de Ethernet.
+			MX8MP_IOMUXC_I2C1_SDA__GPIO5_IO15					0x00	//Agrego esto para los reset de Ethernet.
 		>;
 	};
 
@@ -697,6 +706,8 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_I2C3_SCL__GPIO5_IO18				0x1c2
 			MX8MP_IOMUXC_I2C3_SDA__GPIO5_IO19				0x1c2
+			//MX8MP_IOMUXC_I2C2_SDA__GPIO5_IO17					0x00	//Agrego esto para los reset de Ethernet.
+			//MX8MP_IOMUXC_I2C2_SCL__GPIO5_IO16					0x00	//Agrego esto para los reset de Ethernet.
 		>;
 	};
 
