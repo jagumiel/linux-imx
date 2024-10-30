@@ -9,19 +9,21 @@
 / {
 	model = "Variscite VAR-SOM-MX8M-PLUS on Symphony-Board";
 
+	// Configuración de la consola de salida (UART2)
 	chosen {
 		stdout-path = &uart2;
 	};
 
-
+	// Reloj de referencia para el PCIe 0
 	pcie0_refclk: pcie0-refclk {
-		compatible = "fixed-clock";
+		compatible = "fixed-clock";					// Reloj fijo para PCIe 0
 		#clock-cells = <0>;
-		clock-frequency = <100000000>;
+		clock-frequency = <100000000>;				// Frecuencia del reloj a 100 MHz
 	};
 
+	// Regulador para la alimentación del controlador USDHC2 (3.3V)
 	reg_usdhc2_vmmc: regulator-usdhc2-vmmc {
-		compatible = "regulator-fixed";
+		compatible = "regulator-fixed";				// Regulador fijo
 		regulator-name = "VSD_3V3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
@@ -31,8 +33,9 @@
 		off-on-delay-us = <12000>;
 	};
 
+	// Regulador ajustable para VQMMC del controlador USDHC2
 	reg_usdhc2_vqmmc: regulator-usdhc2-vqmmc {
-		compatible = "regulator-gpio";
+		compatible = "regulator-gpio";				// Regulador controlado por GPIO
 		regulator-name = "VSD_VSEL";
 		regulator-min-microvolt = <1800000>;
 		regulator-max-microvolt = <3300000>;
@@ -42,8 +45,9 @@
 			  1800000 1>;
 	};
 
+	// Regulador para la alimentación del PHY Ethernet (3.3V)
 	reg_fec_phy_vsel: regulator-fec-phy-vsel {
-		compatible = "regulator-fixed";
+		compatible = "regulator-fixed";				// Regulador fijo
 		regulator-name = "fec-phy-vsel";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
@@ -52,6 +56,7 @@
 		enable-active-high;
 	};
 
+	// Regulador para el PHY Ethernet (1.8V)
 	reg_fec_phy: regulator-fec-phy {
 		compatible = "regulator-fixed";
 		regulator-name = "fec-phy";
@@ -64,13 +69,13 @@
 		regulator-always-on;
 	};
 
-
+	// Configuración de sonido HDMI (deshabilitada)
 	sound_hdmi: sound_hdmi {
 		compatible = "fsl,imx-audio-hdmi";
 		model = "audio-hdmi";
 		audio-cpu = <&aud2htx>;
 		hdmi-out;
-		constraint-rate = <44100>,
+		constraint-rate = <44100>, // Tasa de muestreo soportada (44.1 kHz, 88.2 kHz, 176.4 kHz, 32 kHz, 48 kHz, 96 kHz, 192 kHz)
 				<88200>,
 				<176400>,
 				<32000>,
@@ -79,28 +84,74 @@
 				<192000>;
 		status = "disabled";
 	};
+	
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;		// Asocia el grupo de pines "ledsgrp" al nodo de LEDs
+
+		led1: led_1 {
+			label = "POWER_LED_TOP_R";
+			gpios = <&gpio5 3 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+
+		led2: led_2 {
+			label = "POWER_LED_TOP_G";
+			gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+
+		led3: led_3 {
+			label = "LED_WAN1";
+			gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+
+		led4: led_4 {
+			label = "LED_WAN2";
+			gpios = <&gpio5 2 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+
+		led5: led_5 {
+			label = "LED_LAN";
+			gpios = <&gpio4 27 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+
+		led6: led_6 {
+			label = "LED_LAN_LOCAL";
+			gpios = <&gpio4 19 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+		};
+	};
+	
 };
 
-/*&aud2htx {
-	status = "okay";
-};*/
 
-/*&pwm1 {
+/*BEGIN: UART Console*/
+/* Configuración de la consola UART2 */
+&uart2 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm1>;
+	pinctrl-0 = <&pinctrl_uart2>;
 	status = "okay";
-};*/
+};
+/*END: UART Console*/
 
 /*BEGIN: Ethernet PHY*/
+/* Configuración del controlador Ethernet EQoS (Ethernet Quality of Service) */
 &eqos {
+	/* Controlador MDIO (Management Data Input/Output) para controlar los PHYs Ethernet */
 	mdio {
-		ethphy1: ethernet-phy@1 {
+		/* Configuración del primer PHY Ethernet (en la dirección 4 del bus MDIO) */
+		ethphy1: ethernet-phy@4 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <1>;
+			reg = <4>;
 			phy-mode = "rgmii-id";
 			adi,rx-internal-delay-ps = <1800>;
 			adi,tx-internal-delay-ps = <2200>;
-			reset-gpios = <&gpio5 16 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&gpio5 16 GPIO_ACTIVE_LOW>;		// Pin GPIO usado para reiniciar el PHY
 			reset-assert-us = <10000>;
 			reset-deassert-us = <20000>;
 			vddio-supply = <&vddio1>;
@@ -110,14 +161,15 @@
 				regulator-max-microvolt = <1800000>;
 			};
 		};
-
-		ethphy2: ethernet-phy@2 {
+		
+		/* Configuración del segundo PHY Ethernet (en la dirección 10 del bus MDIO) */
+		ethphy2: ethernet-phy@10 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <2>;
+			reg = <10>;
 			phy-mode = "rgmii-id";
 			adi,rx-internal-delay-ps = <1800>;
 			adi,tx-internal-delay-ps = <2200>;
-			reset-gpios = <&gpio5 17 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&gpio5 17 GPIO_ACTIVE_LOW>;		// Pin GPIO usado para reiniciar el PHY
 			reset-assert-us = <10000>;
 			reset-deassert-us = <20000>;
 			vddio-supply = <&vddio2>;
@@ -130,6 +182,7 @@
 	};
 };
 
+/* Configuración del controlador Ethernet FEC (Fast Ethernet Controller) */
 &fec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec>;
@@ -141,14 +194,14 @@
 /*END: Ethernet PHY*/
 
 
-
+/* BEGIN: Configuración del bus I2C3 */
 &i2c3 {
-	clock-frequency = <400000>;
+	clock-frequency = <400000>;							// Velocidad del bus I2C (400 kHz)
 	pinctrl-names = "default", "gpio";
 	pinctrl-0 = <&pinctrl_i2c3>;
 	pinctrl-1 = <&pinctrl_i2c3_gpio>;
-	scl-gpios = <&gpio5 18 GPIO_ACTIVE_HIGH>;
-	sda-gpios = <&gpio5 19 GPIO_ACTIVE_HIGH>;
+	scl-gpios = <&gpio5 18 GPIO_ACTIVE_HIGH>;			// GPIO para la línea de reloj (SCL)
+	sda-gpios = <&gpio5 19 GPIO_ACTIVE_HIGH>;			// GPIO para la línea de datos (SDA)
 	status = "okay";
 
 	/* USB Type-C Controller */ //Esto es la negociacion del modo de USB. ES un chip I2C.
@@ -161,74 +214,24 @@
 		interrupts = <5 IRQ_TYPE_LEVEL_HIGH>;
 		irq-is-id-quirk;
 		status ="okay";
-
+		
+		/* Puertos de la interfaz Type-C */
 		port {
 			typec_dr_sw: endpoint {
-				remote-endpoint = <&usb3_drd_sw>;
+				remote-endpoint = <&usb3_drd_sw>;		// Vincula este endpoint con el controlador DRD USB3
 			};
 		};
 	};
 	
+	/* GPIO para la selección de USB3 */
 	usb3_sel_hog {
-		gpio-hog;
+		gpio-hog;									// El GPIO es "hogged", significa que lo controla el kernel directamente
 		gpios = <4 0>;
 		output-low;
 		line-name = "usb3_sel";
 	};
-
-	/* GPIO expander */
-	/*pca9534: gpio@20 {
-		compatible = "nxp,pca9534";
-		reg = <0x20>;
-		gpio-controller;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_pca9534>;
-		interrupt-parent = <&gpio1>;
-		interrupts = <15 IRQ_TYPE_EDGE_FALLING>;
-		#gpio-cells = <2>;
-		wakeup-source;
-		status = "okay";
-
-		usb3_sel_hog {
-			gpio-hog;
-			gpios = <4 0>;
-			output-low;
-			line-name = "usb3_sel";
-		};
-	};*/
-
-	/*ov5640_mipi0: ov5640_mipi@3c {
-		compatible = "ovti,ov5640";
-		reg = <0x3c>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi0>;
-		clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		clock-names = "xclk";
-// Disabled CLKO2, since DART-MX8MP camera expansion board uses
-//   its own oscillator. Enable CLK02 if your desing requres it
-
-#if 0
-		assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
-#endif
-		assigned-clock-rates = <24000000>;
-		csi_id = <0>;
-		powerdown-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
-		reset-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-		mipi_csi;
-		status = "okay";
-
-		port {
-			ov5640_mipi_0_ep: endpoint {
-				remote-endpoint = <&mipi_csi0_ep>;
-				data-lanes = <1 2>;
-				clock-lanes = <0>;
-			};
-		};
-	};*/
 };
+
 
 &i2c4 {
 	clock-frequency = <400000>;
@@ -366,12 +369,6 @@
 	status = "okay";
 };*/
 
-/* Console */
-&uart2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart2>;
-	status = "okay";
-};
 
 /* Header */
 /*&uart4 {
@@ -412,22 +409,22 @@
 	};
 };
 
-/*&usb3_phy1 {
+&usb3_phy1 {
 	fsl,phy-tx-preemp-amp-tune = <3>;
 	fsl,phy-tx-vref-tune = <0xb>;
 	status = "okay";
-};*/
+};
 
-/*&usb3_1 {
+&usb3_1 {
 	status = "okay";
-};*/
+};
 
-/*&usb_dwc3_1 {
+&usb_dwc3_1 {
 	dr_mode = "host";
 	status = "okay";
-};*/
+};
 
-&usdhc2 {
+/*&usdhc2 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
 	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
@@ -437,7 +434,7 @@
 	vqmmc-supply = <&reg_usdhc2_vqmmc>;
 	bus-width = <4>;
 	status = "okay";
-};
+};*/
 
 /*&mipi_csi_0 {
 	#address-cells = <1>;
@@ -509,10 +506,6 @@
 
 	pinctrl_hog: hoggrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_HDMI_DDC_SCL__HDMIMIX_HDMI_SCL			0x400001c2
-			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA			0x400001c2
-			MX8MP_IOMUXC_HDMI_HPD__HDMIMIX_HDMI_HPD				0x40000010
-			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC				0x40000010
 			MX8MP_IOMUXC_I2C1_SCL__GPIO5_IO14					0x00	//Agrego esto para los reset de Ethernet.
 			MX8MP_IOMUXC_I2C1_SDA__GPIO5_IO15					0x00	//Agrego esto para los reset de Ethernet.
 		>;
@@ -525,6 +518,7 @@
 	};
 	
 	pinctrl_fec: fecgrp {
+		// Configuración de los pines del controlador Ethernet FEC en modo RGMII
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_RXD4__ENET1_RGMII_RD0				0x90
 			MX8MP_IOMUXC_SAI1_RXD5__ENET1_RGMII_RD1				0x90
@@ -560,6 +554,17 @@
 			MX8MP_IOMUXC_I2C3_SDA__I2C3_SDA					0x400001c2
 		>;
 	};
+	
+	pinctrl_leds: ledsgrp {					// Define un grupo de pines llamado ledsgrp
+		fsl,pins = <
+			MX8MP_IOMUXC_SPDIF_TX__GPIO5_IO03		0x1c3 /* Configura como GPIO5_IO03 */
+			MX8MP_IOMUXC_GPIO1_IO13__GPIO1_IO13		0x1c3 /* Configura como GPIO1_IO13 */
+			MX8MP_IOMUXC_GPIO1_IO15__GPIO1_IO15		0x1c3 /* Configura como GPIO1_IO15 */
+			MX8MP_IOMUXC_SAI3_MCLK__GPIO5_IO02		0x1c3 /* Configura como GPIO5_IO02 */
+			MX8MP_IOMUXC_SAI2_MCLK__GPIO4_IO27		0x1c3 /* Configura como GPIO4_IO27 */
+			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19		0x1c3 /* Configura como GPIO4_IO19 */
+		>;
+	};
 
 	pinctrl_i2c4: i2c4grp {
 		fsl,pins = <
@@ -570,8 +575,10 @@
 
 	pinctrl_i2c3_gpio: i2c3gpiogrp {
 		fsl,pins = <
+			/*Esto está duplicado en pinctrl_i2c3. Tiene que ser i2c, no gpio
 			MX8MP_IOMUXC_I2C3_SCL__GPIO5_IO18				0x1c2
 			MX8MP_IOMUXC_I2C3_SDA__GPIO5_IO19				0x1c2
+			*/
 			//MX8MP_IOMUXC_I2C2_SDA__GPIO5_IO17					0x00	//Agrego esto para los reset de Ethernet.
 			//MX8MP_IOMUXC_I2C2_SCL__GPIO5_IO16					0x00	//Agrego esto para los reset de Ethernet.
 		>;
